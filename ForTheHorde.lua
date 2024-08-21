@@ -10,17 +10,19 @@ local gvif_opts,current_opts;
 -- Triggers
 
 local triggers = {
-  { trigger = GetSpellInfo(90355),  var_name = 'ancient_hysteria',           opt_name = "AncientHysteria",         gv = 'FTH_AH',  default = 1 },
-  { trigger = GetSpellInfo(2825),   var_name = 'bloodlust',                  opt_name = "Bloodlust",               gv = 'FTH_BL',  default = 1 },
-  { trigger = GetSpellInfo(178207), var_name = 'drums_of_fury',              opt_name = "DrumsOfFury",             gv = 'FTH_DOF', default = 1 },
-  { trigger = GetSpellInfo(230935), var_name = 'drums_of_the_mountain',      opt_name = "DrumsOfTheMountain",      gv = 'FTH_DOM', default = 1 },
-  { trigger = GetSpellInfo(32182),  var_name = 'heroism',                    opt_name = "Heroism",                 gv = 'FTH_H',   default = 1 },
-  { trigger = GetSpellInfo(160452), var_name = 'netherwinds',                opt_name = "Netherwinds",             gv = 'FTH_NW',  default = 1 },
-  { trigger = GetSpellInfo(80353),  var_name = 'time_warp',                  opt_name = "TimeWarp",                gv = 'FTH_TW',  default = 1 },
-  { trigger = GetSpellInfo(292686), var_name = 'mallet_of_thunderous_skins', opt_name = "MalletOfThunderousSkins", gv = 'FTH_MTS', default = 1 },
-  { trigger = GetSpellInfo(256740), var_name = 'drums_of_the_maelstrom',     opt_name = "DrumsOfTheMaelstrom",     gv = 'FTH_DM',  default = 1 },
-  { trigger = GetSpellInfo(309658), var_name = 'drums_of_deathly_ferocity',  opt_name = "DrumsOfDeathlyFerocity",  gv = 'FTH_DDM', default = 1 },
-  { trigger = GetSpellInfo(390386), var_name = 'fury_of_the_aspects',        opt_name = "FuryOfTheAspects",        gv = 'FTH_FOA', default = 1 },
+  { trigger = C_Spell.GetSpellName(90355),  spellId = 90335,  var_name = 'ancient_hysteria',           opt_name = "AncientHysteria",         gv = 'FTH_AH',  default = 1 },
+  { trigger = C_Spell.GetSpellName(2825),   spellId = 2825,   var_name = 'bloodlust',                  opt_name = "Bloodlust",               gv = 'FTH_BL',  default = 1 },
+  { trigger = C_Spell.GetSpellName(178207), spellId = 178207, var_name = 'drums_of_fury',              opt_name = "DrumsOfFury",             gv = 'FTH_DOF', default = 1 },
+  { trigger = C_Spell.GetSpellName(230935), spellId = 230935, var_name = 'drums_of_the_mountain',      opt_name = "DrumsOfTheMountain",      gv = 'FTH_DOM', default = 1 },
+  { trigger = C_Spell.GetSpellName(32182),  spellId = 32182,  var_name = 'heroism',                    opt_name = "Heroism",                 gv = 'FTH_H',   default = 1 },
+  { trigger = C_Spell.GetSpellName(160452), spellId = 160452, var_name = 'netherwinds',                opt_name = "Netherwinds",             gv = 'FTH_NW',  default = 1 },
+  { trigger = C_Spell.GetSpellName(80353),  spellId = 80353,  var_name = 'time_warp',                  opt_name = "TimeWarp",                gv = 'FTH_TW',  default = 1 },
+  { trigger = C_Spell.GetSpellName(292686), spellId = 292686, var_name = 'mallet_of_thunderous_skins', opt_name = "MalletOfThunderousSkins", gv = 'FTH_MTS', default = 1 },
+  { trigger = C_Spell.GetSpellName(256740), spellId = 256740, var_name = 'drums_of_the_maelstrom',     opt_name = "DrumsOfTheMaelstrom",     gv = 'FTH_DM',  default = 1 },
+  { trigger = C_Spell.GetSpellName(309658), spellId = 309658, var_name = 'drums_of_deathly_ferocity',  opt_name = "DrumsOfDeathlyFerocity",  gv = 'FTH_DDM', default = 1 },
+  { trigger = C_Spell.GetSpellName(390386), spellId = 390386, var_name = 'fury_of_the_aspects',        opt_name = "FuryOfTheAspects",        gv = 'FTH_FOA', default = 1 },
+  { trigger = C_Spell.GetSpellName(264667), spellId = 264667, var_name = "primal_rage",                opt_name = "PrimalRage",              gv = 'FTH_PR',  default = 1 },
+  { trigger = C_Spell.GetSpellName(383243), spellId = 342242, var_name = "time_anomaly",               opt_name = "TimeAnomaly",             gv = 'FTH_TA',  default = 1 },
 };
 
 -- Main Options Window
@@ -57,7 +59,6 @@ end
 
 -- Register events that we listen for
 ForTheHorde.gvif:RegisterEvent("ADDON_LOADED");
-ForTheHorde.gvif:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 ForTheHorde.gvif:RegisterEvent("PLAYER_ENTERING_WORLD");
 ForTheHorde.gvif:RegisterEvent("PLAYER_LOGOUT");
 ForTheHorde.gvif:RegisterEvent("UNIT_AURA");
@@ -69,13 +70,13 @@ function ForTheHorde.gvif:OnEvent( event, arg1, arg2, arg3, arg4, arg5, arg6, ar
       if addedAuras ~= nil then
         for _,addedAura in ipairs(addedAuras) do
           for _,trigger_table in ipairs(triggers) do
-            if ( addedAura["name"] == trigger_table["trigger"] and ForTheHorde['sound_on_' .. trigger_table["var_name"]] == 1 ) then
+            if ( addedAura["spellId"] == trigger_table["spellId"] and ForTheHorde['sound_on_' .. trigger_table["var_name"]] == 1 ) then
               local auraData, i, doTrigger = nil, 1, false;
               repeat 
                 auraData = C_UnitAuras.GetBuffDataByIndex("player",i);
 		if auraData ~= nil then
-                  if ( auraData["name"] == trigger_table["trigger"] and auraData["duration"] - (auraData["expirationTime"] - GetTime()) < 1 ) then
-                    doTrigger = true;
+                  if ( auraData["spellId"] == trigger_table["spellId"] and auraData["duration"] - (auraData["expirationTime"] - GetTime()) < 1 ) then
+                      doTrigger = true;
                     break 
                   end
                 end
@@ -104,6 +105,7 @@ function ForTheHorde.gvif:OnEvent( event, arg1, arg2, arg3, arg4, arg5, arg6, ar
           ForTheHorde['sound_on_' .. trigger_table["var_name"]] = trigger_table["default"];
         end
       end
+
       Settings.RegisterAddOnCategory(Settings.RegisterCanvasLayoutCategory(ForTheHorde.gvif, "For The Horde"));
 
       --InterfaceOptions_AddCategory(ForTheHorde.gvif);
@@ -112,6 +114,8 @@ function ForTheHorde.gvif:OnEvent( event, arg1, arg2, arg3, arg4, arg5, arg6, ar
         createOptions( trigger_table["trigger"], trigger_table["opt_name"], "sound_on_" .. trigger_table["var_name"], 10, y );
         y = y - 30;
       end
+      
+
       y = y - 60;
       -- Sound override
       local chkbox_override = CreateFrame( "CheckButton","Override_CheckBox_GlobalName", ForTheHorde.gvif, "InterfaceOptionsCheckButtonTemplate" );
